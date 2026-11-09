@@ -1,0 +1,152 @@
+:root {
+  --bg-1: #ffd6e0;
+  --bg-2: #ffb3c6;
+  --text: #4a1f2e;
+  --accent: #e63e6d;
+  --accent-dark: #c92c58;
+  --card: rgba(255, 255, 255, 0.85);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+
+body {
+  min-height: 100vh;
+  padding: 20px 14px 60px;
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  color: var(--text);
+  line-height: 1.5;
+  background: linear-gradient(135deg, var(--bg-1), var(--bg-2)) fixed;
+}
+
+.wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+header { text-align: center; padding: 14px 0 4px; }
+h1 { font-size: clamp(1.6rem, 6vw, 2.2rem); }
+header p { margin-top: 6px; opacity: 0.85; }
+
+form { display: flex; flex-direction: column; gap: 16px; }
+
+.card {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(74, 31, 46, 0.12);
+}
+.card h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+.count { font-size: 0.8rem; font-weight: 500; opacity: 0.7; }
+
+details summary { cursor: pointer; font-weight: 700; font-size: 1.1rem; }
+details[open] summary { margin-bottom: 8px; }
+
+label { display: block; font-weight: 600; font-size: 0.9rem; margin: 12px 0 4px; }
+
+input[type="text"], input[type="tel"], textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font: inherit;
+  color: var(--text);
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  outline: none;
+}
+input:focus, textarea:focus { border-color: var(--accent); }
+textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
+#result-link { font-size: 0.9rem; margin: 10px 0; }
+
+.hint { font-size: 0.85rem; opacity: 0.75; margin-top: 6px; }
+code { background: rgba(74, 31, 46, 0.08); padding: 1px 5px; border-radius: 5px; font-size: 0.85em; }
+
+.row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.btn {
+  display: inline-block;
+  padding: 11px 20px;
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--accent); color: #fff; box-shadow: 0 6px 16px rgba(230, 62, 109, 0.35); }
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-primary:disabled { opacity: 0.6; cursor: wait; }
+.btn-secondary { background: #fff; color: var(--text); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12); }
+.btn-ghost { background: transparent; color: var(--text); text-decoration: underline; }
+.btn-big { width: 100%; padding: 15px; font-size: 1.1rem; }
+.file-btn { margin-top: 10px; }
+
+.photo-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+.photo-item {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+.photo-item img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 3px 9px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 999px;
+}
+.photo-item input { margin-top: 6px; padding: 8px 10px; font-size: 0.85rem; }
+.photo-actions { display: flex; gap: 5px; margin-top: 6px; }
+.photo-actions button {
+  flex: 1;
+  padding: 7px 0;
+  font-size: 0.9rem;
+  background: #ffe3ea;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.photo-actions button:disabled { opacity: 0.35; cursor: default; }
+
+.banner {
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  background: #fff4d6;
+  border-radius: 12px;
+  border: 1px solid #f0d58a;
+}
+.status { text-align: center; min-height: 1.4em; font-size: 0.95rem; }
+.status.error { color: var(--accent-dark); font-weight: 600; }
+.result { text-align: left; }
+footer { text-align: center; font-size: 0.8rem; opacity: 0.7; }
