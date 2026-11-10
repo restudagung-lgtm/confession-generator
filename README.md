@@ -3,7 +3,7 @@
 Alat untuk membuat web confession interaktif. Alurnya:
 
 1. **Link 1 (`index.html`)**: halaman setting. Pengguna memilih 1–8 foto, mengatur nama
-   dan teks, surat (bisa diacak), WhatsApp, dan musik (semuanya opsional kecuali foto).
+   dan teks, mini game, surat (bisa diacak), WhatsApp, dan musik (semuanya opsional kecuali foto).
 2. Setelah menekan **Buat link**, muncul **link 2** (`lihat.html?id=...`) untuk dikirim
    ke pasangan. Link ini berlaku **24 jam**, lalu menampilkan pesan "kedaluwarsa".
 
@@ -24,6 +24,7 @@ confession-generator/
 │   ├── db.js               # simpan/muat data (Firestore atau mode demo)
 │   ├── image-utils.js      # kompres foto di browser
 │   ├── letters.js          # pembuat surat acak
+│   ├── games.js            # 6 mini game + daftar pilihan
 │   ├── generator.js        # logika halaman setting
 │   └── viewer.js           # logika halaman tampil
 ├── firestore.rules       # aturan keamanan Firestore
@@ -80,6 +81,25 @@ masih ada di Firestore sampai dihapus. Ada tiga cara membersihkannya:
 1. Upload semua isi folder ini ke repository GitHub.
 2. **Settings → Pages**, pilih branch `main`, folder `/ (root)`, lalu **Save**.
 3. Buka `https://<username>.github.io/<nama-repo>/` untuk halaman setting.
+
+## Mini game
+
+Alur di link 2: Welcome → (isi nama, jika tidak diisi pembuat) → kalimat pengantar
+(satu per satu, ketuk untuk lanjut) → **mini game** → pertanyaan → ucapan.
+Game hanya dimainkan di link 2. Pembuat memilih satu di link 1 (atau "Tanpa game"):
+
+| Game | Keterangan |
+|---|---|
+| Cocokkan kartu foto | Mencari pasangan kartu; memakai foto pembuat (maks. 6 pasang, sisanya emoji) |
+| Tangkap hati | Mengetuk 10 hati yang jatuh |
+| Puzzle foto | Menggeser kotak untuk menyusun foto utama (pasti bisa diselesaikan) |
+| Gosok kejutan | Menggosok layar untuk membuka foto utama |
+| Tebak pesan rahasia | Menebak huruf; pesan 3–24 huruf buatan pembuat. Tiap 3 kesalahan, satu huruf dibuka |
+| Kuis tentang kamu | 1–5 pertanyaan pilihan ganda buatan pembuat |
+
+Tombol **Lewati game** muncul jika pemain sering salah atau terlalu lama, jadi pemain
+tidak terjebak. Game baru bisa ditambah di `js/games.js` (daftarkan di `GAME_LIST`,
+`GAME_INFO`, dan `IMPL`).
 
 ## Cara kerja & batasan
 

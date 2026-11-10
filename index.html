@@ -40,7 +40,36 @@
       </section>
 
       <section class="card">
-        <h2>3. Surat <span class="count">opsional</span></h2>
+        <h2>3. Mini game <span class="count">opsional</span></h2>
+        <p class="hint">Dimainkan penerima di link yang kamu bagikan, sebelum pertanyaan. Pilih satu.</p>
+        <div id="game-choices" class="game-choices"></div>
+        <p id="game-note" class="hint"></p>
+
+        <div id="game-opts-word" hidden>
+          <label for="f-word">Pesan rahasia yang harus ditebak</label>
+          <input type="text" id="f-word" maxlength="24" value="AKU SUKA KAMU">
+          <p class="hint">3–24 huruf (A–Z) dan spasi saja, tanpa angka atau tanda baca.</p>
+        </div>
+
+        <div id="game-opts-quiz" hidden>
+          <p class="hint">Tulis 1–5 pertanyaan dengan 2–4 pilihan. Tandai jawaban yang benar dengan lingkaran di sampingnya. Boleh memakai {nama}.</p>
+          <div id="quiz-list"></div>
+          <button type="button" class="btn btn-secondary" id="btn-add-quiz">+ Tambah pertanyaan</button>
+        </div>
+
+        <label for="f-intro">Kalimat pengantar (satu per baris)</label>
+        <textarea id="f-intro" maxlength="400" class="short">Sebelum aku tanya sesuatu…
+main dulu ya 🎮</textarea>
+        <p class="hint">Muncul satu per satu (ketuk untuk lanjut) sebelum game dan pertanyaan. Kosongkan jika tidak mau.</p>
+
+        <div id="game-common">
+          <label for="f-game-win">Teks saat game berhasil</label>
+          <input type="text" id="f-game-win" maxlength="80" value="Berhasil! 🎉">
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>4. Surat <span class="count">opsional</span></h2>
         <label for="f-letter-title">Judul surat</label>
         <input type="text" id="f-letter-title" maxlength="80" value="Untuk kamu 💌">
         <label for="f-letter">Isi surat</label>
@@ -53,7 +82,7 @@
       </section>
 
       <section class="card">
-        <h2>4. WhatsApp <span class="count">opsional</span></h2>
+        <h2>5. WhatsApp <span class="count">opsional</span></h2>
         <label for="f-wa">Nomor WhatsApp-mu</label>
         <input type="tel" id="f-wa" inputmode="tel" maxlength="20" placeholder="08xxxxxxxxxx atau +62xxxxxxxxxx">
         <label for="f-wa-msg">Pesan yang disiapkan</label>
@@ -62,7 +91,7 @@
       </section>
 
       <section class="card">
-        <h2>5. Musik <span class="count">opsional</span></h2>
+        <h2>6. Musik <span class="count">opsional</span></h2>
         <label class="btn btn-secondary file-btn" for="music-input">+ Pilih file mp3</label>
         <input type="file" id="music-input" accept="audio/mpeg,audio/mp3,.mp3" hidden>
         <p id="music-status" class="hint">Maksimal 2 MB (sekitar 2 menit pada 128 kbps). Pakai musik yang kamu berhak memakainya.</p>
@@ -70,7 +99,7 @@
       </section>
 
       <details class="card">
-        <summary>6. Ubah teks lainnya</summary>
+        <summary>7. Ubah teks lainnya</summary>
         <p class="hint">Semua sudah terisi bawaan. Gunakan <code>{nama}</code> dan <code>{pengirim}</code> bila perlu.</p>
 
         <label for="f-welcome-title">Judul sambutan</label>

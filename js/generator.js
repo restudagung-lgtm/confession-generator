@@ -5,6 +5,7 @@
 import { DEMO, saveConfession } from "./db.js";
 import { compressImage } from "./image-utils.js";
 import { randomLetter } from "./letters.js";
+import { GAME_LIST } from "./games.js";
 import { LIFETIME_HOURS } from "./firebase-config.js";
 
 const $ = (id) => document.getElementById(id);
@@ -160,6 +161,176 @@ $("btn-music-remove").addEventListener("click", () => {
   $("btn-music-remove").hidden = true;
 });
 
+/* ---------------- Mini game ---------------- */
+const DEFAULT_INTRO = "Sebelum aku tanya sesuatu…\nmain dulu ya 🎮";
+let gameType = "memory";
+let quizItems = [{ q: "", options: ["", ""], answer: 0 }];
+let introTouched = false;
+
+$("f-intro").addEventListener("input", () => (introTouched = true));
+
+function buildGameChoices() {
+  const box = $("game-choices");
+  box.textContent = "";
+  GAME_LIST.forEach((g) => {
+    const label = document.createElement("label");
+    label.className = "choice";
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "game";
+    input.value = g.id;
+    input.checked = g.id === gameType;
+    input.addEventListener("change", () => {
+      gameType = g.id;
+      syncGameUI();
+    });
+    const span = document.createElement("span");
+    const st = document.createElement("strong");
+    st.textContent = g.label;
+    const sm = document.createElement("small");
+    sm.textContent = g.desc;
+    span.append(st, sm);
+    label.append(input, span);
+    box.appendChild(label);
+  });
+}
+
+function syncGameUI() {
+  $("game-opts-word").hidden = gameType !== "word";
+  $("game-opts-quiz").hidden = gameType !== "quiz";
+  $("game-common").hidden = gameType === "none";
+  const notes = {
+    memory: "Memakai fotomu sebagai kartu (maks. 6 pasang; kalau fotonya sedikit, sisanya diisi emoji).",
+    puzzle: "Memakai foto utama (foto pertama).",
+    scratch: "Memakai foto utama (foto pertama).",
+  };
+  $("game-note").textContent = notes[gameType] || "";
+  if (!introTouched) {
+    $("f-intro").value = gameType === "none" ? "Sebelum aku tanya sesuatu…" : DEFAULT_INTRO;
+  }
+  if (gameType === "quiz") renderQuiz();
+}
+
+function renderQuiz() {
+  const box = $("quiz-list");
+  box.textContent = "";
+  quizItems.forEach((it, qi) => {
+    const card = document.createElement("div");
+    card.className = "quiz-item";
+
+    const q = document.createElement("input");
+    q.type = "text";
+    q.maxLength = 120;
+    q.placeholder = "Pertanyaan " + (qi + 1);
+    q.value = it.q;
+    q.addEventListener("input", () => (it.q = q.value));
+    card.appendChild(q);
+
+    it.options.forEach((o, oi) => {
+      const row = document.createElement("div");
+      row.className = "quiz-opt-row";
+      const r = document.createElement("input");
+      r.type = "radio";
+      r.name = "quiz-ans-" + qi;
+      r.checked = it.answer === oi;
+      r.title = "Jawaban benar";
+      r.setAttribute("aria-label", "Jawaban benar");
+      r.addEventListener("change", () => (it.answer = oi));
+      const t = document.createElement("input");
+      t.type = "text";
+      t.maxLength = 60;
+      t.placeholder = "Pilihan " + (oi + 1);
+      t.value = o;
+      t.addEventListener("input", () => (it.options[oi] = t.value));
+      row.append(r, t);
+      if (it.options.length > 2) {
+        const x = document.createElement("button");
+        x.type = "button";
+        x.textContent = "✕";
+        x.title = "Hapus pilihan";
+        x.setAttribute("aria-label", "Hapus pilihan");
+        x.addEventListener("click", () => {
+          it.options.splice(oi, 1);
+          if (it.answer === oi) it.answer = 0;
+          else if (it.answer > oi) it.answer--;
+          renderQuiz();
+        });
+        row.appendChild(x);
+      }
+      card.appendChild(row);
+    });
+
+    const tools = document.createElement("div");
+    tools.className = "quiz-tools";
+    if (it.options.length < 4) {
+      const add = document.createElement("button");
+      add.type = "button";
+      add.textContent = "+ Pilihan";
+      add.addEventListener("click", () => {
+        it.options.push("");
+        renderQuiz();
+      });
+      tools.appendChild(add);
+    }
+    if (quizItems.length > 1) {
+      const del = document.createElement("button");
+      del.type = "button";
+      del.textContent = "Hapus pertanyaan";
+      del.addEventListener("click", () => {
+        quizItems.splice(qi, 1);
+        renderQuiz();
+      });
+      tools.appendChild(del);
+    }
+    card.appendChild(tools);
+    box.appendChild(card);
+  });
+  $("btn-add-quiz").hidden = quizItems.length >= 5;
+}
+
+$("btn-add-quiz").addEventListener("click", () => {
+  if (quizItems.length >= 5) return;
+  quizItems.push({ q: "", options: ["", ""], answer: 0 });
+  renderQuiz();
+});
+
+/** Mengembalikan { game } atau { error }. */
+function buildGame() {
+  if (gameType === "none") return { game: { type: "none" } };
+  const game = { type: gameType, winText: $("f-game-win").value.trim().slice(0, 80) };
+
+  if (gameType === "word") {
+    const w = $("f-word").value.toUpperCase().replace(/\s+/g, " ").trim();
+    if (!/^[A-Z ]{3,24}$/.test(w)) {
+      return { error: "Pesan rahasia: 3–24 karakter, hanya huruf A–Z dan spasi (tanpa angka atau tanda baca)." };
+    }
+    game.word = w;
+  }
+
+  if (gameType === "quiz") {
+    const out = [];
+    for (const it of quizItems) {
+      const text = it.q.trim();
+      const opts = [];
+      let ans = -1;
+      it.options.forEach((o, oi) => {
+        const t = o.trim();
+        if (!t) return;
+        if (oi === it.answer) ans = opts.length;
+        opts.push(t.slice(0, 60));
+      });
+      if (!text && !opts.length) continue; // kartu kosong dilewati
+      if (!text || opts.length < 2 || ans < 0) {
+        return { error: "Kuis: tiap pertanyaan butuh teks, minimal 2 pilihan terisi, dan satu jawaban benar yang ditandai." };
+      }
+      out.push({ q: text.slice(0, 120), options: opts, answer: ans });
+    }
+    if (!out.length) return { error: "Kuis: tulis minimal 1 pertanyaan." };
+    game.quiz = out;
+  }
+  return { game };
+}
+
 /* ---------------- Kumpulkan config ---------------- */
 function normalizePhone(raw) {
   let n = String(raw || "").replace(/\D/g, "");
@@ -203,6 +374,12 @@ function collectConfig() {
     noTexts,
     success: { title: v("f-success-title", 80), text: v("f-success-text", 200) },
     galleryTitle: v("f-gallery-title", 60),
+    intro: $("f-intro")
+      .value.split("\n")
+      .map((s) => s.trim().slice(0, 100))
+      .filter(Boolean)
+      .slice(0, 6),
+    game: buildGame().game || { type: "none" },
     letter: paragraphs.length
       ? {
           title: v("f-letter-title", 80),
@@ -247,6 +424,13 @@ $("gen-form").addEventListener("submit", async (e) => {
   const phone = normalizePhone(phoneRaw);
   if (phoneRaw && (phone.length < 9 || phone.length > 15)) {
     setStatus("Nomor WhatsApp sepertinya belum benar.", true);
+    return;
+  }
+
+  const gb = buildGame();
+  if (gb.error) {
+    setStatus(gb.error, true);
+    $("game-choices").scrollIntoView({ behavior: "smooth", block: "center" });
     return;
   }
 
@@ -309,4 +493,6 @@ $("btn-again").addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
+buildGameChoices();
+syncGameUI();
 renderPhotos();

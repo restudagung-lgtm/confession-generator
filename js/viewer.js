@@ -4,6 +4,7 @@
  * Welcome -> (Nama) -> Pertanyaan -> Ucapan + foto utama + surat + galeri.
  */
 import { loadConfession, chunksToBlobUrl } from "./db.js";
+import { startGame, GAME_INFO } from "./games.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -12,6 +13,8 @@ const screens = {
   error: $("screen-error"),
   welcome: $("screen-welcome"),
   name: $("screen-name"),
+  intro: $("screen-intro"),
+  game: $("screen-game"),
   question: $("screen-question"),
   success: $("screen-success"),
 };
@@ -113,17 +116,24 @@ function goNext() {
   if (current !== "welcome") return;
   startMusic();
   if (userName) {
-    showQuestion();
+    startFlow();
   } else {
     show("name");
     setTimeout(() => nameInput.focus(), 400);
   }
 }
-document.addEventListener("click", goNext);
+document.addEventListener("click", () => {
+  if (current === "welcome") goNext();
+  else if (current === "intro") nextIntro();
+});
 document.addEventListener("keydown", (e) => {
-  if (current === "welcome" && (e.key === "Enter" || e.key === " ")) {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  if (current === "welcome") {
     e.preventDefault();
     goNext();
+  } else if (current === "intro") {
+    e.preventDefault();
+    nextIntro();
   }
 });
 
@@ -136,8 +146,97 @@ $("name-form").addEventListener("submit", (e) => {
   }
   $("name-error").textContent = "";
   userName = v;
-  showQuestion();
+  startFlow();
 });
+
+/* ---------------- Pengantar & mini game ---------------- */
+let introLines = [];
+let introIdx = 0;
+let introBusy = false;
+let stopGame = null;
+
+function startFlow() {
+  introLines = (Array.isArray(CFG.intro) ? CFG.intro : []).map(fill).filter(Boolean);
+  introIdx = 0;
+  if (introLines.length) {
+    showIntroLine();
+    show("intro");
+  } else {
+    beginGame();
+  }
+}
+
+function showIntroLine() {
+  const line = $("intro-line");
+  line.classList.remove("in");
+  line.textContent = introLines[introIdx];
+  void line.offsetWidth; // restart transisi
+  line.classList.add("in");
+}
+
+function nextIntro() {
+  if (current !== "intro" || introBusy) return;
+  introBusy = true;
+  setTimeout(() => (introBusy = false), 450);
+  introIdx++;
+  if (introIdx < introLines.length) showIntroLine();
+  else beginGame();
+}
+
+function beginGame() {
+  const g = CFG.game || {};
+  const info = GAME_INFO[g.type];
+  if (!info) return showQuestion();
+
+  const area = $("game-area");
+  area.textContent = "";
+  $("game-title").textContent = info.title;
+  $("game-hint").textContent = info.hint;
+  const skip = $("game-skip");
+  skip.hidden = true;
+
+  let fails = 0;
+  let over = false;
+  const reveal = () => (skip.hidden = false);
+  const timer = setTimeout(reveal, info.skipMs);
+  const finish = () => {
+    if (over) return;
+    over = true;
+    clearTimeout(timer);
+    if (stopGame) {
+      stopGame();
+      stopGame = null;
+    }
+    area.textContent = "";
+    showQuestion();
+  };
+  skip.onclick = finish;
+
+  show("game");
+  screens.game.scrollTop = 0;
+  try {
+    stopGame = startGame(g.type, area, {
+      photos: PHOTOS,
+      config: CFG,
+      fill,
+      fail() {
+        if (over) return;
+        fails++;
+        if (fails >= info.skipFails) reveal();
+      },
+      win() {
+        if (over) return;
+        skip.hidden = true;
+        $("game-hint").textContent = fill(g.winText || "Berhasil! 🎉");
+        launchConfetti(40);
+        setTimeout(finish, 1600);
+      },
+    });
+  } catch (e) {
+    console.error(e);
+    finish();
+  }
+}
 
 /* ---------------- Tombol "Nggak" ---------------- */
 function resizeButtons() {
@@ -325,9 +424,9 @@ function spawnHeart() {
   el.addEventListener("animationend", () => el.remove());
 }
 
-function launchConfetti() {
+function launchConfetti(count = 80) {
   const colors = ["#e63e6d", "#ffb3c6", "#ffd166", "#06d6a0", "#118ab2"];
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < count; i++) {
     const c = document.createElement("span");
     c.className = "confetti";
     c.style.left = Math.random() * 100 + "vw";
